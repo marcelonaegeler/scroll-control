@@ -46,7 +46,7 @@ define('scroll-control'
     };
 
     /*
-    * Load an external funciton inside the onscroll event
+    * Load an external function inside the onscroll event
     */
     var externalScroll = function(position) {
       position = position || $(window).scrollTop();
