@@ -3,36 +3,44 @@ define('scroll-control'
   , function() {
     "use strict";
     // Global vars
-    var PAGES = window.PAGES;
+    var PAGES = $('[href^=#]');
     var PATH = document.getElementById('main').getAttribute('data-url');
     var PAGE_LIMITER;
     var FIXED_HEADER = 135; // Consider fixed header bar height
-    var pages = {};
+    var pages = [];
 
     /*
     * Set each page info
     */
     var setPages = function() {
-      for(var page in PAGES) {
-        if(!PAGES[page] || (!+page && +page != 0)) continue;
-
+      var pagesLength = PAGES.length;
+      pages = [];
+      for(var i = 0; i < pagesLength; i++) {
         (function() {
-          var pageName = PAGES[page];
-          var el = $([ '#', pageName ].join(''))
+          var page = $(PAGES[i]);
+          var pageId = page.attr('href');
+          var pageName = pageId.split('#')[1];
+
+          var el = $(pageId);
           if(!el[0]) return;
           var elOffsetTop = el.offset().top
             , elHeight = el.outerHeight();
-          pages[pageName] = {
-            name: pageName
-            , top: elOffsetTop
-            , height: elHeight
-            , topLimit: elOffsetTop - PAGE_LIMITER
-            , bottomLimit: elOffsetTop + elHeight - PAGE_LIMITER
-          };
 
-          $('[href="#'+ pageName +'"]').click(function(event) {
+          if(!!page.attr('data-show-url')) {
+            var pageInfo = {
+              name: pageName
+              , top: elOffsetTop
+              , height: elHeight
+              , topLimit: elOffsetTop - PAGE_LIMITER
+              , bottomLimit: elOffsetTop + elHeight - PAGE_LIMITER
+            };
+
+            pages.push(pageInfo);
+          }
+
+          $('[href="'+ pageId +'"]').click(function(event) {
             event.preventDefault();
-            scrollTo(/(#\w+)$/.exec(this.href)[1]);
+            scrollTo(pageId);
           });
         })();
       }
@@ -46,7 +54,7 @@ define('scroll-control'
     };
 
     /*
-    * Load an external function inside the onscroll event
+    * Load an external funciton inside the onscroll event
     */
     var externalScroll = function(position) {
       position = position || $(window).scrollTop();
@@ -61,11 +69,10 @@ define('scroll-control'
         , hash = '';
       externalScroll(position);
 
-      var pagesLength = PAGES.length;
+      var pagesLength = pages.length;
       for(var i = 0; i < pagesLength; i++) {
-        if(!PAGES[i] || !pages[PAGES[i]]) continue;
         (function() {
-          var page = pages[PAGES[i]];
+          var page = pages[i];
           if(position >= page.topLimit && position < page.bottomLimit) hash = page.name;
         })();
       }
